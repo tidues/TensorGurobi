@@ -3,6 +3,18 @@ import gurobipy as gp
 import warnings
 from itertools import product
 from types import GeneratorType
+import time
+
+
+# callback to get mip info
+def cb_mip_info(md, where):
+    if where == gp.GRB.Callback.MIP:
+        obj = md.cbGet(gp.GRB.Callback.MIP_OBJBST)
+        bd = md.cbGet(gp.GRB.Callback.MIP_OBJBND)
+        if md._obj != obj or md._bd != bd:
+            md._obj = obj
+            md._bd = bd
+            md._objbds.append([time.time() - md._start, obj, bd])
 
 
 # main model
@@ -112,16 +124,24 @@ class Model:
         self.md.setObjective(expr, sense)
 
     # solve
-    def solve(self, display=0, params={}):
+    def solve(self, display=0, params={}, cb_mip=False):
         self.md.setParam('LogToConsole', display)
         try:
             for param, value in params.items():
                 self.md.setParam(param, value)
         except (TypeError, ValueError):
             raise ValueError('Incorrect parameters or values.')  
-        self.md.optimize()
+        if cb_mip:
+            self.md._objbds = []
+            self.md._obj = None
+            self.md._bd = None
+            self.md._start = time.time()
+            self.md.optimize(callback=cb_mip_info)
+            self.md._objbds.append([time.time() - self.md._start, self.md.objVal, self.md.objBound])
+        else:
+            self.md.optimize()
         status = self.md.status
-        if status == 2:
+        if status == 2 or status == 9:
             return self.md.objVal
         else:
             if status in self.statusCode:
