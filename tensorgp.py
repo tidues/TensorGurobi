@@ -19,9 +19,10 @@ def cb_mip_info(md, where):
 
 # main model
 class Model:
-    def __init__(self, name=""):
+    def __init__(self, name="", params={}):
         self.name = name
-        self.md = gp.Model(name)
+        env = gp.Env(params=params)
+        self.md = gp.Model(name, env=env)
         self.typemap = {
             "C": gp.GRB.CONTINUOUS, 
             "B": gp.GRB.BINARY,
