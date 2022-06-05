@@ -21,11 +21,13 @@ def cb_mip_info(md, where):
 class Model:
     def __init__(self, name="", params={}):
         self.name = name
-        if len(params) > 0:
+        values = list(params.values())
+        # if all Nones
+        if values.count(None) == len(values):
+            self.md = gp.Model(name)
+        else:
             env = gp.Env(params=params)
             self.md = gp.Model(name, env=env)
-        else:
-            self.md = gp.Model(name)
         self.typemap = {
             "C": gp.GRB.CONTINUOUS, 
             "B": gp.GRB.BINARY,
