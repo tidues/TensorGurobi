@@ -21,7 +21,7 @@ def cb_mip_info(md, where):
 class Model:
     def __init__(self, name="", params={}):
         self.name = name
-        if len(params) == 0:
+        if len(params) > 0:
             env = gp.Env(params=params)
             self.md = gp.Model(name, env=env)
         else:
