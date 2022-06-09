@@ -130,7 +130,7 @@ class Model:
         self.md.setObjective(expr, sense)
 
     # solve
-    def solve(self, display=0, params={}, cb_mip=False):
+    def solve(self, display=0, params={}, cb_mip=False, start=None):
         self.md.setParam('LogToConsole', display)
         try:
             for param, value in params.items():
@@ -141,7 +141,10 @@ class Model:
             self.md._objbds = []
             self.md._obj = None
             self.md._bd = None
-            self.md._start = time.time()
+            if start is None:
+                self.md._start = time.time()
+            else:
+                self.md._start = start
             self.md.optimize(callback=cb_mip_info)
             self.md._objbds.append([time.time() - self.md._start, self.md.objVal, self.md.objBound])
         else:
